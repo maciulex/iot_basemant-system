@@ -1,2 +1,10 @@
 build/
+.metals/
+.vscode/
+comm_doc/
+old/
+.gitattributes
+.gitignore
+structure.png
 pico_sdk_import.cmake
+py/secret.py

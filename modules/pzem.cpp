@@ -5,22 +5,24 @@
 #include "pico/stdlib.h"
 #include <cstdio>
 
-#define UART_ID_PZEM uart1
-#define BAUD_RATE_PZEM 9600
+#define UART_ID uart1
+#define BAUD_RATE 9600
 
-#define UART_TX_PIN_PZEM 8
-#define UART_RX_PIN_PZEM 9
+#define UART_TX_PIN 4
+#define UART_RX_PIN 5
 
 namespace pzem {
     uint8_t readVoltage[2] {0x00, 0x00};
-    const uint8_t Address {0x01};
+    const uint8_t Address {0xF8};
 
     void uartRead();
     void getHumanReadAbleData();
     void printData();
     void setCRC(uint16_t len);
+    void setResetCRC();
 
     uint8_t toSend[8] {Address, 0x04, 0x00,0x00, 0x00, 0x0A,0, 0}, REGISTERS_LAST[25];
+    uint8_t resetCommand[4] {Address, 0x42};
     bool lastCorrect = false;
     
     struct
@@ -39,14 +41,29 @@ namespace pzem {
         printData();
     }
 
+    bool reset() {
+        if (!uart_is_writable(UART_ID)) {
+            return false;
+        }
+        uart_write_blocking(UART_ID, resetCommand, 4);
+        if (uart_is_readable_within_us(UART_ID, 8000)) {
+            uint8_t resp[6]; 
+            uart_read_blocking(UART_ID, resp, 6);
+            if (resp[2] == 0x42) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     void uartRead() {
-        while (uart_is_readable(UART_ID_PZEM)) {
-            uart_getc(UART_ID_PZEM);
+        if (!uart_is_writable(UART_ID)) {
+            lastCorrect = false;
+            return;
         }
-        uart_write_blocking(UART_ID_PZEM, toSend, 8);
-        if (uart_is_readable_within_us(UART_ID_PZEM, 80000)) {
-            uart_read_blocking(UART_ID_PZEM, REGISTERS_LAST, 25);
+        uart_write_blocking(UART_ID, toSend, 8);
+        if (uart_is_readable_within_us(UART_ID, 8000)) {
+            uart_read_blocking(UART_ID, REGISTERS_LAST, 25);
             if (REGISTERS_LAST[0] != Address || REGISTERS_LAST[1] != 0x04) {
                 lastCorrect = false;
                 return;
@@ -78,25 +95,18 @@ namespace pzem {
 
     }
 
+
+
     void init() {
-        uart_init(UART_ID_PZEM, BAUD_RATE_PZEM);
+        uart_init(UART_ID, BAUD_RATE);
 
-        gpio_set_function(UART_TX_PIN_PZEM, GPIO_FUNC_UART);
-        gpio_set_function(UART_RX_PIN_PZEM, GPIO_FUNC_UART);
-        uart_set_format(UART_ID_PZEM, 8, 1, UART_PARITY_NONE);
-        uart_set_fifo_enabled(UART_ID_PZEM, false);
+        gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
+        gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
+        uart_set_format(UART_ID, 8, 1, UART_PARITY_NONE);
         setCRC(8);
+        setResetCRC();
+        uartRead();
     }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -111,7 +121,13 @@ namespace pzem {
         toSend[len - 2] = crc & 0xFF; // Low byte first
         toSend[len - 1] = (crc >> 8) & 0xFF; // High byte second
     }
-
+    void setResetCRC() {
+        uint16_t crc = CRC16(resetCommand, 2); // CRC of data
+        printf("crc: %i", crc);
+        // Write high and low byte to last two positions
+        resetCommand[2] = crc & 0xFF; // Low byte first
+        resetCommand[3] = (crc >> 8) & 0xFF; // High byte second
+    }
     static unsigned char auchCRCHi[] {
             0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
             0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
