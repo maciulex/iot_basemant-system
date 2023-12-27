@@ -6,14 +6,14 @@
 #include "pico/stdlib.h"
 
 namespace CONTROLER {
+    uint8_t pin_esco_1      = 13;
+    uint8_t pin_esco_2      = 14;
     uint8_t pin_dark_sensor = 15;
-    uint8_t pin_esco_1      = 14;
-    uint8_t pin_esco_2      = 13;
 
-    uint8_t pin_switch_1_up   = 20;
-    uint8_t pin_switch_1_down = 21;
-    uint8_t pin_switch_2_up   = 22;
-    uint8_t pin_switch_2_down = 26;
+    uint8_t pin_switch_1_down = 20;
+    uint8_t pin_switch_1_up   = 21;
+    uint8_t pin_switch_2_down = 22;
+    uint8_t pin_switch_2_up   = 26;
 
     uint8_t relay_valve     = 16;
     uint8_t relay_pump      = 17;
@@ -21,11 +21,11 @@ namespace CONTROLER {
     uint8_t relay_co_heater = 19;
 
     void get_io() {
-        DARK_SENSOR = gpio_get(pin_dark_sensor);    
-        ESCO_1      = gpio_get(pin_esco_1);
-        ESCO_2      = gpio_get(pin_esco_2);
+        DARK_SENSOR = !gpio_get(pin_dark_sensor);    
+        ESCO_1      = !gpio_get(pin_esco_1);
+        ESCO_2      = !gpio_get(pin_esco_2);
 
-        if (gpio_get(pin_switch_1_up)) {
+        if (       gpio_get(pin_switch_1_up)) {
             SWITCH_1_STATE = 1;
         } else if (gpio_get(pin_switch_1_down)) {
             SWITCH_1_STATE = 2;
@@ -33,7 +33,7 @@ namespace CONTROLER {
             SWITCH_1_STATE = 0;
         }
 
-        if (gpio_get(pin_switch_2_up)) {
+        if (       gpio_get(pin_switch_2_up)) {
             SWITCH_2_STATE = 1;
         } else if (gpio_get(pin_switch_2_down)) {
             SWITCH_2_STATE = 2;
@@ -43,47 +43,173 @@ namespace CONTROLER {
     }
 
     void setHeater(bool state) {
-
+        if (state)
+            gpio_put(relay_heater,0);
+        else
+            gpio_put(relay_heater,1);
     }
 
     void setPomp(bool state) {
-
+        if (state)
+            gpio_put(relay_pump,0);
+        else
+            gpio_put(relay_pump,1);
     }
 
     void setValve(bool open) {
-
+        if (open)
+            gpio_put(relay_valve,0);
+        else
+            gpio_put(relay_valve,1);
     }
 
     void setCO_Heater(bool state) {
-
+        if (state)
+            gpio_put(relay_co_heater,0);
+        else
+            gpio_put(relay_co_heater,1);
     }
 
 
     void determine_group1() {
+        if (DISABLE_GROUP_1) {
+            GROUP_1_STATUS = false;
+            return;
+        }
 
+        if (FORCE_ENABLE_GROUP_1) {
+            GROUP_1_STATUS = true;
+            return;
+        }
+
+        if (GROUP_2_STATUS) {
+            GROUP_1_STATUS = false;
+            return;
+        }
+
+        if (GROUP_1_HARMONOGRAM) {
+            GROUP_1_STATUS = true;
+            return;
+        }
+
+        if (DARK_SENSOR && ESCO_1 && !ESCO_2){
+            GROUP_1_STATUS = true;
+            return;
+        }
+
+        if (HEAT_AND_OFF_GROUP_1) {
+            if (TEMP_ONE_WIRE::SensorsData_float[4] == 0xffff) {
+                GROUP_1_STATUS = false;
+                return;
+            }
+
+            if (TEMP_TRESHOLD_FOR_HEAT_AND_OFF < TEMP_ONE_WIRE::SensorsData_float[4]) {
+                HEAT_AND_OFF_GROUP_1 = false;
+                GROUP_1_STATUS = false;
+                return;
+            }
+            GROUP_1_STATUS = true;
+            return;
+        }
+        GROUP_1_STATUS = false;
     }
 
     void determine_group2() {
+        if (DISABLE_GROUP_2) {
+            GROUP_2_STATUS = false;
+            return;
+        }
 
+        if (FORCE_ENABLE_GROUP_2) {
+            GROUP_2_STATUS = true;
+            return;
+        }
+
+        if (GROUP_2_HARMONOGRAM) {
+            GROUP_2_STATUS = true;
+            return;
+        }
+
+        if ((!ESCO_1 && ESCO_2)){
+            GROUP_2_STATUS = true;
+            return;
+        }
+        GROUP_2_STATUS = false; 
     }
 
     void determine_group3() {
+        if (DISABLE_GROUP_3) {
+            GROUP_3_STATUS = false;
+            return;
+        }
 
+        if (FORCE_ENABLE_GROUP_3) {
+            GROUP_3_STATUS = true;
+            return;
+        }
+
+        if (GROUP_3_HARMONOGRAM) {
+            GROUP_3_STATUS = true;
+            return;
+        }
+
+        if (HEAT_AND_OFF_GROUP_3) {
+            if (TEMP_ONE_WIRE::SensorsData_float[3] == 0xffff) {
+                GROUP_3_STATUS = false;
+                return;
+            } 
+
+            if (TEMP_TRESHOLD_CO_FOR_HEAT_AND_OFF < TEMP_ONE_WIRE::SensorsData_float[3]) {
+                HEAT_AND_OFF_GROUP_3 = false;
+                GROUP_3_STATUS = false;
+                return;
+            }
+            GROUP_3_STATUS = true;
+            return;
+        }
+        GROUP_3_STATUS = false;
     }
 
     void determine() {
         get_io();
-        if (SWITCH_1_STATE == 1) {
-            determine_group1();
-        }
 
         if (SWITCH_2_STATE == 1) {
             determine_group2();
-        }
+        } else if (SWITCH_2_STATE == 2) {
+            GROUP_2_STATUS = true;
+        } else
+            GROUP_2_STATUS = false;
+
+        if (SWITCH_1_STATE == 1) {
+            determine_group1();
+        } else if (SWITCH_1_STATE == 2) {
+            GROUP_1_STATUS = true;
+        } else
+            GROUP_1_STATUS = false;
 
         determine_group3();
 
+        if (GROUP_1_STATUS)
+            setHeater(true);
+        else 
+            setHeater(false);
 
+        if (GROUP_2_STATUS)
+            setValve (true);
+        else 
+            setValve (false);
+
+        if (GROUP_1_STATUS || GROUP_2_STATUS) 
+            setPomp  (true);
+        else 
+            setPomp  (false);
+
+
+
+        if (GROUP_3_STATUS) 
+            setCO_Heater(true);
+        else
+            setCO_Heater(false);
     }
 
     void init() {

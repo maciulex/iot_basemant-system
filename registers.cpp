@@ -22,6 +22,7 @@ uint8_t ESCO_1 = false;
 uint8_t ESCO_2 = false;
 
 uint8_t TEMP_TRESHOLD_FOR_HEAT_AND_OFF = 60;
+uint8_t TEMP_TRESHOLD_CO_FOR_HEAT_AND_OFF = 32;
 
 uint8_t GROUP_1_STATUS = false;
 uint8_t GROUP_2_STATUS = false;

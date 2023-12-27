@@ -26,39 +26,36 @@ enum class HARMONOGRAM_ACTIONS {
     DISABLE_GROUP_3,
 };
 void setNextHarmonogrameIrq();
-void rtcIRQresolver() {
-    uint8_t action = DEV_HARMONOGRAM[(ACTIVE_HARMONOGRAM*3)+2];
-    printf("Execution of RTC IRQ\n");
-    printf("ACTIVE_HARMONOGRAM %i\n", ACTIVE_HARMONOGRAM);
-    printf("ACTION %i\n", action);
+
+void performHarmonogramAction(uint8_t action) {
     switch (action) {
         case static_cast<unsigned int>(HARMONOGRAM_ACTIONS::REBOOT):
-            printf("WOOOOOOOO HARMONOGRAM \n");
+            printf("WOOOOOOOO HARMONOGRAM REBOOT\n");
             doReboot();
         break;
 
         case static_cast<unsigned int>(HARMONOGRAM_ACTIONS::ENABLE_GROUP_1):
-            printf("WOOOOOOOO HARMONOGRAM \n");
+            printf("WOOOOOOOO HARMONOGRAM ENABLE_GROUP_1\n");
             GROUP_1_HARMONOGRAM = 1;
         break;
         case static_cast<unsigned int>(HARMONOGRAM_ACTIONS::ENABLE_GROUP_2):
-            printf("WOOOOOOOO HARMONOGRAM \n");
+            printf("WOOOOOOOO HARMONOGRAM ENABLE_GROUP_2\n");
             GROUP_2_HARMONOGRAM = 1;
         break;
         case static_cast<unsigned int>(HARMONOGRAM_ACTIONS::ENABLE_GROUP_3):
-            printf("WOOOOOOOO HARMONOGRAM \n");
+            printf("WOOOOOOOO HARMONOGRAM ENABLE_GROUP_3\n");
             GROUP_3_HARMONOGRAM = 1;
         break;
         case static_cast<unsigned int>(HARMONOGRAM_ACTIONS::DISABLE_GROUP_1):
-            printf("WOOOOOOOO HARMONOGRAM \n");
+            printf("WOOOOOOOO HARMONOGRAM DISABLE_GROUP_1\n");
             GROUP_1_HARMONOGRAM = 0;
         break;
         case static_cast<unsigned int>(HARMONOGRAM_ACTIONS::DISABLE_GROUP_2):
-            printf("WOOOOOOOO HARMONOGRAM \n");
+            printf("WOOOOOOOO HARMONOGRAM DISABLE_GROUP_2\n");
             GROUP_2_HARMONOGRAM = 0;
         break;
         case static_cast<unsigned int>(HARMONOGRAM_ACTIONS::DISABLE_GROUP_3):
-            printf("WOOOOOOOO HARMONOGRAM \n");
+            printf("WOOOOOOOO HARMONOGRAM DISABLE_GROUP_3\n");
             GROUP_3_HARMONOGRAM = 0;
         break;
       
@@ -67,6 +64,14 @@ void rtcIRQresolver() {
         break;
     }
 
+}
+
+void rtcIRQresolver() {
+    uint8_t action = DEV_HARMONOGRAM[(ACTIVE_HARMONOGRAM*3)+2];
+    printf("Execution of RTC IRQ\n");
+    printf("ACTIVE_HARMONOGRAM %i\n", ACTIVE_HARMONOGRAM);
+    printf("ACTION %i\n", action);
+    performHarmonogramAction(action);
     setNextHarmonogrameIrq();
 }
 
@@ -146,6 +151,13 @@ void newHarmonogramData() {
     if (DEV_COUNTER_HARMONOGRAM == 0) {
         printf("NO HARMOS\n");
         return;
+    }
+
+    printf("PERFORMIN LAST HARMO ACIOTN\n");
+    if (ACTIVE_HARMONOGRAM == 0) {
+        performHarmonogramAction(DEV_HARMONOGRAM[((DEV_COUNTER_HARMONOGRAM-1)*3)+2]);
+    } else {
+        performHarmonogramAction(DEV_HARMONOGRAM[((ACTIVE_HARMONOGRAM-1)*3)+2]);
     }
     
     setIrq(ACTIVE_HARMONOGRAM);

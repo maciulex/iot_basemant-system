@@ -94,7 +94,9 @@ namespace UART_BETWEEN_BOARDS {
         HEAT_AND_OFF_GROUP_1_E,
         HEAT_AND_OFF_GROUP_2_E,
         HEAT_AND_OFF_GROUP_3_E,
-
+        TEMP_TRESHOLD_CO_FOR_HEAT_AND_OFF_E,
+        SWITCH_1_STATE_E,
+        SWITCH_2_STATE_E
         //DEFINE DEPENDING ON SITUATION
     };
     #include "../OnDataSet_functions.cpp"
@@ -111,7 +113,7 @@ namespace UART_BETWEEN_BOARDS {
         DATA(DataType::HARMONOGRAM    ,  DEV_HARMONOGRAM           , 90  ,true ,  (void *)DEV_NEW_HARMONOGRAM_FUNC),
         DATA(DataType::REBOOT         ,  nullptr                   , 0   ,true ,  (void *)doReboot),
         
-        DATA(DataType::TEMPS_ONE_WIRE_E ,  TEMP_ONE_WIRE::SensorsData  , 20  ,false,  nullptr),
+        DATA(DataType::TEMPS_ONE_WIRE_E ,  TEMP_ONE_WIRE::SensorsData  , 10  ,false,  nullptr),
         DATA(DataType::PZEM_E           ,  pzem::REGISTERS_LAST        , 25  ,false,  nullptr),
         DATA(DataType::DARK_SENSOR_E                   ,&DARK_SENSOR   ,1    ,false,  nullptr),
         DATA(DataType::ESCO_1_E                        ,&ESCO_1        ,1    ,false,  nullptr),
@@ -134,6 +136,11 @@ namespace UART_BETWEEN_BOARDS {
         DATA(DataType::HEAT_AND_OFF_GROUP_1_E          ,&HEAT_AND_OFF_GROUP_1, 1, true, nullptr),
         DATA(DataType::HEAT_AND_OFF_GROUP_2_E          ,&HEAT_AND_OFF_GROUP_2, 1, true, nullptr),
         DATA(DataType::HEAT_AND_OFF_GROUP_3_E          ,&HEAT_AND_OFF_GROUP_3, 1, true, nullptr),
+        DATA(DataType::TEMP_TRESHOLD_CO_FOR_HEAT_AND_OFF_E,&TEMP_TRESHOLD_CO_FOR_HEAT_AND_OFF,1,true,nullptr),
+        DATA(DataType::SWITCH_1_STATE_E,                     &SWITCH_1_STATE,1,false,nullptr),
+        DATA(DataType::SWITCH_2_STATE_E,                     &SWITCH_2_STATE,1,false,nullptr),
+
+
     };
 
     std::vector<uint8_t> FUNCTIONS_TO_EXECUTE;

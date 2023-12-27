@@ -7,8 +7,8 @@ import usocket
 from machine import WDT
 from machine import UART
 
-pico_id = 0
-pico_desc = "test_device"
+pico_id = 1
+pico_desc = "basement_system"
 pico_request_header = "?pico_id="+str(pico_id)+"&pico_desc="+pico_desc
 
 wdt = WDT(timeout=8388)
@@ -20,6 +20,33 @@ address_to = 0x22
 async def bootAck(isPicoH = 0):
     await webRequest("/newSystem/traffic_control.php"+pico_request_header+"&action=bootAck")
     return [0,0,0];
+
+async def RAPORT():
+    print("raport!!")
+    regi_ready = [10,11,12,13,14,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35];
+
+    wdt.feed()
+
+    res = await comm.getData(regi_ready, 0x22)
+    html = "";
+    wdt.feed()
+    if (res is False):
+        html += "ERROR: NO CONNECTION";
+    else:
+        for r in range(len(res)):
+            for d in range(len(res[r])):
+                html += str(res[r][d])
+                if d < len(res[r])-1:
+                    html+= "|"
+            if r < len(res)-1:
+                    html+= "||"
+            
+            wdt.feed()
+    print("result: ", html)
+    await webRequest("/newSystem/traffic_control.php"+pico_request_header+"&action=raport&vals="+html)
+    print("raport END!!")
+    
+
 async def getHarmonogram():
     harmonogram = await webRequest("/newSystem/traffic_control.php"+pico_request_header+"&action=getHarmonogram")
     harmonogram = harmonogram.split("||")
@@ -108,13 +135,17 @@ async def main():
     await asyncio.sleep(0.5);
     
     #asyncio.create_task(getData())
-    #await bootAck()
+    await bootAck()
     wdt.feed()
     asyncio.create_task(checkForRequests())
     print("init_done")
     #await comm.getAllCommunicationRequest(0x22)
     while True:
-        await asyncio.sleep(2);
+        for i in range(14):
+            wdt.feed()
+            await asyncio.sleep(2);
+        wdt.feed()
+        await RAPORT();
         #wdt.feed()
         #await dataCommunication()
         wdt.feed()

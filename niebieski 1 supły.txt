@@ -1,0 +1,5 @@
+niebieski 1 supły 2857795704e13c47 wyjście piec
+niebieski 2 supły 28246f80e3e13c5c powrót  piec
+Brązowy   1 supły 28ae5280e3e13c11 wyjście CO
+Brązowy   2 supły 286ee180e3e13c8f powrót  CO
+Brązowy   3 supły 28003458d4e13c6a bojler

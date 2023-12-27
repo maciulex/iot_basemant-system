@@ -1,0 +1,15 @@
+DOLNY RJ-45
+
+pomarancz  t1
+zielen     t1-t2 common
+niebieski  t2
+brązowy    czujnik zmierzchu
+
+
+
+GÓRNY RJ-45
+pomarańcz-pomarańczbiel 5v
+niebieski-niebieskibiel gnd
+brązowy data
+rest:
+	GND

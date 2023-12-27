@@ -28,17 +28,17 @@
 
 
 ///- 15 CZUJKA ZMIERZCHU
-///- 14 ESCO 1
-///- 13 ESCO 2
+///- 13 ESCO 1
+///- 14 ESCO 2
 ///- 16 RELAY - zawór
 ///- 17 RELAY - pompa
 ///- 18 RELAY - grzałka
 ///- 19 RELAY - strzelec
 
-//- 20 - PRZEŁĄCZNIK GÓRNY - GÓRNA POZYCJA
-//- 21 - PRZEŁĄCZNIK GÓRNY - DOLNA POZYCJA
-//- 22 - PRZEŁĄCZNIK DOLNY - GÓRNA POZYCJA
-//- 26 - PRZEŁĄCZNIK DOLNY - DOLNA POZYCJA
+//- 20 - PRZEŁĄCZNIK GÓRNY - DOLNA POZYCJA
+//- 21 - PRZEŁĄCZNIK GÓRNY - GÓRNA POZYCJA
+//- 22 - PRZEŁĄCZNIK DOLNY - DOLNA POZYCJA
+//- 26 - PRZEŁĄCZNIK DOLNY - GÓRNA POZYCJA
 
 
 
@@ -64,6 +64,7 @@ void loop_core2() {
 void loop_core1() {
     pzem::init();
     TEMP_ONE_WIRE::init();
+    CONTROLER::init();
     while (true) {
         if (REBOOT_FLAG) {
             watchdog_enable(1,false);
@@ -74,13 +75,13 @@ void loop_core1() {
         
         while (1) {
             UART_BETWEEN_BOARDS::executeFunctionsToBeExecuted();
-            pzem::uartRead();
             CONTROLER::determine();
             int32_t new_time_since_boot = to_ms_since_boot(get_absolute_time());
             if (new_time_since_boot - time_since_boot > time_to_wait) {
                 break;
             }
         }
+        pzem::uartRead();
         TEMP_ONE_WIRE::saveMesure();
     }
 }

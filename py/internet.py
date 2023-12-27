@@ -121,11 +121,19 @@ async def serve_client(reader, writer):
         __main__.wdt.feed()
         print("registers: ", regi_ready)
         res = await __main__.comm.getData(regi_ready, 0x22)
-        for r in res:
-            for d in r:
-                html += str(d)+"|"
-            html += "||"
-        __main__.wdt.feed()
+        if (res is False):
+            html += "ERROR: NO CONNECTION";
+        else:
+
+            for r in range(len(res)):
+                for d in range(len(res[r])):
+                    html += str(res[r][d])
+                    if d < len(res[r])-1:
+                        html+= "|"
+                if r < len(res)-1:
+                        html+= "||"
+            
+            __main__.wdt.feed()
     print(request)
     
 
