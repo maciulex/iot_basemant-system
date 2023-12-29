@@ -79,7 +79,15 @@ DATA = [
         [32, "HEAT_AND_OFF_GROUP_3_E"          , 1],
         [33, "TEMP_TRESHOLD_CO_FOR_HEAT_AND_OFF_E", 1],
         [34, "SWITCH_1_STATE_E"                , 1],
-        [35, "SWITCH_2_STATE_E"                , 1]
+        [35, "SWITCH_2_STATE_E"                , 1],
+        
+        [36, "PUMP_BOILER_STATUS_E"            , 1],
+        [37, "HEATER_BOILER_STATUS_E"          , 1],
+        [38, "VALVE_BOILER_STATUS_E"           , 1],
+        [39, "DELAY_HEATER_PUMP_E"             , 1],
+        [40, "HEATER_WAS_ACTIVE_E"             , 1],
+        [41, "CLEAR_EEPROM_E"                  , 1],
+        [42, "CLEAR_HARMO_FLAGS_E"             , 1]
     ]
 
 CommReqPin = Pin(2, Pin.IN, Pin.PULL_DOWN)

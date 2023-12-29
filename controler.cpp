@@ -20,6 +20,17 @@ namespace CONTROLER {
     uint8_t relay_heater    = 18;
     uint8_t relay_co_heater = 19;
 
+    uint64_t time_when_heater_was_active = to_ms_since_boot(get_absolute_time());
+    uint8_t mins_to_pump_after_heater = 3;
+    uint8_t heater_was_active = false;
+
+    uint8_t PUMP_BOILER_STATUS = 0;
+    uint8_t HEATER_BOILER_STATUS = 0;
+    uint8_t VALVE_BOILER_STATUS = 0;
+
+    #include "inttypes.h"
+
+
     void get_io() {
         DARK_SENSOR = !gpio_get(pin_dark_sensor);    
         ESCO_1      = !gpio_get(pin_esco_1);
@@ -43,31 +54,54 @@ namespace CONTROLER {
     }
 
     void setHeater(bool state) {
-        if (state)
+        if (state) {
             gpio_put(relay_heater,0);
-        else
+            HEATER_BOILER_STATUS = 1;
+        } else {
             gpio_put(relay_heater,1);
+            if (HEATER_BOILER_STATUS == 1) {
+                heater_was_active = true;
+                time_when_heater_was_active = to_ms_since_boot(get_absolute_time());
+            }
+            HEATER_BOILER_STATUS = 0;
+        }
     }
 
     void setPomp(bool state) {
-        if (state)
+        if (heater_was_active) {
+            uint64_t time_now = to_ms_since_boot(get_absolute_time());
+            //printf("time left: %"PRId32" \n", time_now - time_when_heater_was_active);
+            if (time_now - time_when_heater_was_active > ((uint64_t)mins_to_pump_after_heater)*(60*1000)) {
+                heater_was_active = false;
+            } else {
+                state = true;
+            }
+        }
+        if (state) {
             gpio_put(relay_pump,0);
-        else
+            PUMP_BOILER_STATUS = 1;
+        } else {
             gpio_put(relay_pump,1);
+            PUMP_BOILER_STATUS = 0;
+        }
     }
 
     void setValve(bool open) {
-        if (open)
+        if (open) {
             gpio_put(relay_valve,0);
-        else
+            VALVE_BOILER_STATUS = 1;
+        } else {
             gpio_put(relay_valve,1);
+            VALVE_BOILER_STATUS = 0;
+        }
     }
 
     void setCO_Heater(bool state) {
-        if (state)
+        if (state) {
             gpio_put(relay_co_heater,0);
-        else
+        } else {
             gpio_put(relay_co_heater,1);
+        }
     }
 
 

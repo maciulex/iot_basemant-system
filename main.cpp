@@ -20,12 +20,13 @@
 #include "modules/pzem.cpp"
 #include "modules/one_wire/api/one_wire.h"
 #include "temp.cpp"
+#include "modules/24aa01.cpp"
 
 ///----USED PINS
 ///- 0,1,2 UART WITH OTHER BOARD
 ///- 3     TEMP_ONE_WIRE
 ///- 4, 5 UART PZEM
-
+///- 6, 7 I2C EEPROM
 
 ///- 15 CZUJKA ZMIERZCHU
 ///- 13 ESCO 1
@@ -52,10 +53,10 @@ void loop_core2() {
     UART_BETWEEN_BOARDS::init(true,true,true);
     
     while(1) {
-        if (REBOOT_FLAG) {
-            watchdog_enable(1,false);
-            while(1);
-        }
+        // if (REBOOT_FLAG) {
+        //     watchdog_enable(1, 1);
+        //     while(1);
+        // }
         UART_BETWEEN_BOARDS::checkForRequestedData();
         sleep_ms(50);
     };
@@ -65,11 +66,23 @@ void loop_core1() {
     pzem::init();
     TEMP_ONE_WIRE::init();
     CONTROLER::init();
+    EPROOM_24AA01::init();
+    uint8_t counter = 0;
+    sleep_ms(50);
+    if (EPROOM_24AA01::checkIfDataPresent()) {
+        EPROOM_24AA01::readAll();
+    }
     while (true) {
         if (REBOOT_FLAG) {
-            watchdog_enable(1,false);
-            while(1);
+            // printf("reeboot\n");
+            // watchdog_enable(1, 1);
+            // while(1);
         }
+        if (counter > 5) {
+            EPROOM_24AA01::writeAll();
+            counter = 0;
+        }
+        counter++;
         int32_t time_since_boot = to_ms_since_boot(get_absolute_time());
         int32_t time_to_wait    = (int32_t)TEMP_ONE_WIRE::startTemp_mesure();
         
@@ -83,6 +96,7 @@ void loop_core1() {
         }
         pzem::uartRead();
         TEMP_ONE_WIRE::saveMesure();
+
     }
 }
 

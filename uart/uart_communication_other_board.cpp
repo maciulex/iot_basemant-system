@@ -10,8 +10,10 @@
 
 #include "crc16.cpp"
 #include "../registers.cpp"
-#include "../modules/pzem.cpp"
+#include "../controler.cpp"
 
+#include "../modules/pzem.cpp"
+#include "../modules/24aa01.cpp"
 namespace UART_BETWEEN_BOARDS {
     bool debug = true;
     
@@ -96,7 +98,16 @@ namespace UART_BETWEEN_BOARDS {
         HEAT_AND_OFF_GROUP_3_E,
         TEMP_TRESHOLD_CO_FOR_HEAT_AND_OFF_E,
         SWITCH_1_STATE_E,
-        SWITCH_2_STATE_E
+        SWITCH_2_STATE_E,
+
+        PUMP_BOILER_STATUS_E,
+        HEATER_BOILER_STATUS_E,
+        VALVE_BOILER_STATUS_E,
+        DELAY_HEATER_PUMP_E,
+        HEATER_WAS_ACTIVE_E,
+
+        CLEAR_EEPROM_E,
+        CLEAR_HARMO_FLAGS_E
         //DEFINE DEPENDING ON SITUATION
     };
     #include "../OnDataSet_functions.cpp"
@@ -140,7 +151,14 @@ namespace UART_BETWEEN_BOARDS {
         DATA(DataType::SWITCH_1_STATE_E,                     &SWITCH_1_STATE,1,false,nullptr),
         DATA(DataType::SWITCH_2_STATE_E,                     &SWITCH_2_STATE,1,false,nullptr),
 
+        DATA(DataType::PUMP_BOILER_STATUS_E            ,&CONTROLER::PUMP_BOILER_STATUS,  1,false,nullptr),
+        DATA(DataType::HEATER_BOILER_STATUS_E,          &CONTROLER::HEATER_BOILER_STATUS,1,false,nullptr),
+        DATA(DataType::VALVE_BOILER_STATUS_E,           &CONTROLER::VALVE_BOILER_STATUS ,1,false,nullptr),
+        DATA(DataType::DELAY_HEATER_PUMP_E,             &CONTROLER::mins_to_pump_after_heater,1,true,nullptr),
+        DATA(DataType::HEATER_WAS_ACTIVE_E,             &CONTROLER::heater_was_active   ,1,false,nullptr),
 
+        DATA(DataType::CLEAR_EEPROM_E,                  nullptr  ,0,true,(void *)EPROOM_24AA01::clearAllMemory),
+        DATA(DataType::CLEAR_HARMO_FLAGS_E,             nullptr  ,0,true,(void *)resetHarmo_flags),
     };
 
     std::vector<uint8_t> FUNCTIONS_TO_EXECUTE;
@@ -376,6 +394,13 @@ namespace UART_BETWEEN_BOARDS {
                 
                 if (!DATA_REFS[reg].DATA_POINTER) {
                     counter += siz;
+                    if (DATA_REFS[reg].funcToExecuteWhenNew){
+                        if (reg == 9) {
+                            doReboot();
+                        }
+                        FUNCTIONS_TO_EXECUTE.push_back(reg);
+                        // ((void(*)(void))DATA_REFS[reg].funcToExecuteWhenNew)();
+                    }
                     continue;
                 }
                 printf("SIZE %i, REG %i\n", siz, reg);
@@ -396,11 +421,10 @@ namespace UART_BETWEEN_BOARDS {
                     }
                 }
 
-                if (!DATA_REFS[reg].funcToExecuteWhenNew){
-                    continue;
-                }
-                // ((void(*)(void))DATA_REFS[reg].funcToExecuteWhenNew)();
-                FUNCTIONS_TO_EXECUTE.push_back(reg);
+                if (DATA_REFS[reg].funcToExecuteWhenNew){
+                    FUNCTIONS_TO_EXECUTE.push_back(reg);
+                    // ((void(*)(void))DATA_REFS[reg].funcToExecuteWhenNew)();
+                }                
             }
             checkForRequestedData();
             printf("DATA RECIVED\n");

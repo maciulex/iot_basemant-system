@@ -15,7 +15,7 @@ pico_enable_stdio_uart(time_switch 0)
 target_link_libraries(time_switch 
 pico_stdlib hardware_uart hardware_rtc 
 pico_multicore hardware_watchdog pico_time
-pico_one_wire
+pico_one_wire hardware_i2c
 
 ) #hardware_spi hardware_i2c
 pico_add_extra_outputs(time_switch)
