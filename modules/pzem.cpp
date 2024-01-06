@@ -49,6 +49,10 @@ namespace pzem {
         if (uart_is_readable_within_us(UART_ID, 8000)) {
             uint8_t resp[6]; 
             uart_read_blocking(UART_ID, resp, 6);
+            
+            while (uart_is_readable_within_us(UART_ID, 5000)) {
+                uart_getc(UART_ID);
+            }
             if (resp[2] == 0x42) {
                 return true;
             }
@@ -57,6 +61,9 @@ namespace pzem {
     }
 
     void uartRead() {
+        while (uart_is_readable_within_us(UART_ID, 5)) {
+            uart_getc(UART_ID);
+        }
         if (!uart_is_writable(UART_ID)) {
             lastCorrect = false;
             return;

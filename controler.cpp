@@ -69,9 +69,9 @@ namespace CONTROLER {
 
     void setPomp(bool state) {
         if (heater_was_active) {
-            uint64_t time_now = to_ms_since_boot(get_absolute_time());
+            uint32_t time_now = to_ms_since_boot(get_absolute_time());
             //printf("time left: %"PRId32" \n", time_now - time_when_heater_was_active);
-            if (time_now - time_when_heater_was_active > ((uint64_t)mins_to_pump_after_heater)*(60*1000)) {
+            if (time_now - time_when_heater_was_active > ((uint32_t)mins_to_pump_after_heater)*(60*1000)) {
                 heater_was_active = false;
             } else {
                 state = true;
@@ -204,7 +204,7 @@ namespace CONTROLER {
         GROUP_3_STATUS = false;
     }
 
-    void determine() {
+    void determine(bool dont_change_output = false) {
         get_io();
 
         if (SWITCH_2_STATE == 1) {
@@ -222,6 +222,10 @@ namespace CONTROLER {
             GROUP_1_STATUS = false;
 
         determine_group3();
+
+        if (dont_change_output) {
+            return;
+        }
 
         if (GROUP_1_STATUS)
             setHeater(true);

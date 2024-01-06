@@ -16,6 +16,7 @@
 #include "../modules/24aa01.cpp"
 namespace UART_BETWEEN_BOARDS {
     bool debug = true;
+    bool CommunicationOngoind = false;
     
     //uart conf
     uint         BOUND_RATE= 9600;
@@ -107,7 +108,8 @@ namespace UART_BETWEEN_BOARDS {
         HEATER_WAS_ACTIVE_E,
 
         CLEAR_EEPROM_E,
-        CLEAR_HARMO_FLAGS_E
+        CLEAR_HARMO_FLAGS_E,
+        RESET_PUMP_E
         //DEFINE DEPENDING ON SITUATION
     };
     #include "../OnDataSet_functions.cpp"
@@ -159,6 +161,7 @@ namespace UART_BETWEEN_BOARDS {
 
         DATA(DataType::CLEAR_EEPROM_E,                  nullptr  ,0,true,(void *)EPROOM_24AA01::clearAllMemory),
         DATA(DataType::CLEAR_HARMO_FLAGS_E,             nullptr  ,0,true,(void *)resetHarmo_flags),
+        DATA(DataType::RESET_PUMP_E,                    nullptr  ,0,true,(void *)reset_pump),
     };
 
     std::vector<uint8_t> FUNCTIONS_TO_EXECUTE;
@@ -354,6 +357,7 @@ namespace UART_BETWEEN_BOARDS {
     }
 
     void uart_fail_exit() {
+        CommunicationOngoind = false;
         uart_reinit();
         clearUart();
     }
@@ -514,12 +518,15 @@ namespace UART_BETWEEN_BOARDS {
     }
 
     void irqFunction() {
+        if (CommunicationOngoind) return;
+        CommunicationOngoind = true;
+
         uart_read_blocking(UART_PORT, DATA_IN,  5);
         for (int i = 0; i < 5; i++) {
             printf("\tmess raw %i \t| %i\n", DATA_IN[i], i);
         }
         if (!uartValidityCheck()) {
-            uart_reinit();
+            return uart_fail_exit();
         }
         if (!isMessForMe()) {
             printf("mess not for me\n");
@@ -532,6 +539,7 @@ namespace UART_BETWEEN_BOARDS {
         if (!checkWholeMess(5)) return uart_fail_exit();
         printf("going to recive mess\n");
         reciveMessage();
+        CommunicationOngoind = false;
     }
 
     void uart_reinit() {

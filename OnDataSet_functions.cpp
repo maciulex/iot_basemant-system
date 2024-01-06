@@ -4,6 +4,7 @@
 #include "modules/pzem.cpp"
 #include "modules/one_wire/api/one_wire.h"
 #include "temp.cpp"
+#include "controler.cpp"
 
 void RESET_ONE_WIRE_EXE_F() {
     printf("reset one wire\n");
@@ -13,6 +14,10 @@ void RESET_ONE_WIRE_EXE_F() {
 void RESET_PZEM_F() {
     printf("reset pzem\n");
     pzem::reset();
+}
+
+void reset_pump() {
+    CONTROLER::heater_was_active = false;
 }
 
 void resetHarmo_flags() {

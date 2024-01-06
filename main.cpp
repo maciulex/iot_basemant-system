@@ -41,7 +41,7 @@
 //- 22 - PRZEŁĄCZNIK DOLNY - DOLNA POZYCJA
 //- 26 - PRZEŁĄCZNIK DOLNY - GÓRNA POZYCJA
 
-
+bool core_2_runnin = true;
 
 
 void loop_core2() {
@@ -53,10 +53,10 @@ void loop_core2() {
     UART_BETWEEN_BOARDS::init(true,true,true);
     
     while(1) {
-        // if (REBOOT_FLAG) {
-        //     watchdog_enable(1, 1);
-        //     while(1);
-        // }
+        if (REBOOT_FLAG) {
+            core_2_runnin = false;
+            return;
+        }
         UART_BETWEEN_BOARDS::checkForRequestedData();
         sleep_ms(50);
     };
@@ -68,12 +68,18 @@ void loop_core1() {
     CONTROLER::init();
     EPROOM_24AA01::init();
     uint8_t counter = 0;
-    sleep_ms(50);
+    sleep_ms(5);
     if (EPROOM_24AA01::checkIfDataPresent()) {
         EPROOM_24AA01::readAll();
     }
+
+    for (int i = 0; i < 10; i++) {
+        CONTROLER::determine(true);
+    }
     while (true) {
-        if (REBOOT_FLAG) {
+        if (REBOOT_FLAG  && !core_2_runnin) {
+            watchdog_enable(1, 1);
+            while(1);
             // printf("reeboot\n");
             // watchdog_enable(1, 1);
             // while(1);
