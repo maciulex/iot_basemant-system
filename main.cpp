@@ -66,14 +66,14 @@ void loop_core1() {
     pzem::init();
     TEMP_ONE_WIRE::init();
     CONTROLER::init();
-    EPROOM_24AA01::init();
+    // EPROOM_24AA01::init();
     uint8_t counter = 0;
     sleep_ms(5);
-    if (EPROOM_24AA01::checkIfDataPresent()) {
-        EPROOM_24AA01::readAll();
-    }
+    // if (EPROOM_24AA01::checkIfDataPresent()) {
+    //     EPROOM_24AA01::readAll();
+    // }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 5; i++) {
         CONTROLER::determine(true);
     }
     while (true) {
@@ -84,10 +84,10 @@ void loop_core1() {
             // watchdog_enable(1, 1);
             // while(1);
         }
-        if (counter > 5) {
-            EPROOM_24AA01::writeAll();
-            counter = 0;
-        }
+        // if (counter > 5) {
+            // EPROOM_24AA01::writeAll();
+            // counter = 0;
+        // }
         counter++;
         int32_t time_since_boot = to_ms_since_boot(get_absolute_time());
         int32_t time_to_wait    = (int32_t)TEMP_ONE_WIRE::startTemp_mesure();

@@ -5,6 +5,9 @@
 #include "pico/stdlib.h"
 #include "modules/one_wire/api/one_wire.h"
 namespace TEMP_ONE_WIRE {
+
+    void init();
+
     const uint8_t dataPin = 3;
     uint8_t amountOfDevices = 0;
     
@@ -68,12 +71,15 @@ namespace TEMP_ONE_WIRE {
                 break;
             }
         }
+        bool need_to_reset = false;
         for (int z = 0; z < 5; z++) {
             if (setted[z]) continue;
+            need_to_reset = true;
             SensorsData[ z*2]    = 0xff;
             SensorsData[(z*2)+1] = 0xff;
             SensorsData_float[4] = 0xffff;
         }
+        if (need_to_reset) init();
     }
 
     void init() {
