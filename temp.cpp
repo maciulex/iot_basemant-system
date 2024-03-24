@@ -6,7 +6,7 @@
 #include "modules/one_wire/api/one_wire.h"
 namespace TEMP_ONE_WIRE {
 
-    void init();
+    // void init();
 
     const uint8_t dataPin = 3;
     uint8_t amountOfDevices = 0;
@@ -79,7 +79,7 @@ namespace TEMP_ONE_WIRE {
             SensorsData[(z*2)+1] = 0xff;
             SensorsData_float[4] = 0xffff;
         }
-        if (need_to_reset) init();
+        // if (need_to_reset) init();
     }
 
     void init() {

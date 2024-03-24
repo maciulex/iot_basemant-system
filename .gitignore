@@ -8,3 +8,4 @@ old/
 structure.png
 pico_sdk_import.cmake
 py/secret.py
+main.py

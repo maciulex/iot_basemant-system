@@ -8,7 +8,7 @@ from machine import WDT
 from machine import UART
 
 pico_id = 1
-pico_desc = "basement_system"
+pico_desc = "basement_system_test"
 pico_request_header = "?pico_id="+str(pico_id)+"&pico_desc="+pico_desc
 
 wdt = WDT(timeout=8388)

@@ -65,18 +65,21 @@ namespace pzem {
             uart_getc(UART_ID);
         }
         if (!uart_is_writable(UART_ID)) {
+            printf("pzem_uart_un_writable\n");
             lastCorrect = false;
             return;
         }
         uart_write_blocking(UART_ID, toSend, 8);
-        if (uart_is_readable_within_us(UART_ID, 8000)) {
+        if (uart_is_readable_within_us(UART_ID, 80000)) {
             uart_read_blocking(UART_ID, REGISTERS_LAST, 25);
             if (REGISTERS_LAST[0] != Address || REGISTERS_LAST[1] != 0x04) {
+                printf("pzem_wrong_address\n");
                 lastCorrect = false;
                 return;
             }
             lastCorrect = true;
         } else {
+            printf("pzem_uart_un_readable\n");
             lastCorrect = false;
         }
     }

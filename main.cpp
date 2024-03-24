@@ -77,10 +77,10 @@ void loop_core1() {
         CONTROLER::determine(true);
     }
     while (true) {
-        if (REBOOT_FLAG  && !core_2_runnin) {
-            watchdog_enable(1, 1);
-            while(1);
-            // printf("reeboot\n");
+        if (REBOOT_FLAG ) {
+            multicore_reset_core1();
+            printf("reeboot\n");
+            return;
             // watchdog_enable(1, 1);
             // while(1);
         }
@@ -101,6 +101,8 @@ void loop_core1() {
             }
         }
         pzem::uartRead();
+        // pzem::getHumanReadAbleData();
+        // pzem::printData();
         TEMP_ONE_WIRE::saveMesure();
 
     }
@@ -111,5 +113,6 @@ int main() {
     stdio_init_all();
     multicore_launch_core1(loop_core2);
     loop_core1();
+    watchdog_enable(1, 1);
     return 0;
 }
